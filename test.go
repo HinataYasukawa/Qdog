@@ -17,10 +17,15 @@ var shapeValues = map[string]int{
 	"☆": 5,
 }
 
-// 問題と答えを生成
+// ランダムな問題を生成
 func generateProblem() (string, string, int) {
-	shape1 := "〇"
-	shape2 := "△"
+	shapes := []string{"〇", "△", "□", "☆"} // 図形のリスト
+
+	// ランダムに2つの図形を選択
+	shape1 := shapes[rand.Intn(len(shapes))]
+	shape2 := shapes[rand.Intn(len(shapes))]
+
+	// 合計を計算
 	sum := shapeValues[shape1] + shapeValues[shape2]
 	return shape1, shape2, sum
 }
@@ -50,7 +55,6 @@ func main() {
 
 	// 問題を表示
 	fmt.Printf("問題: %s %s\n", shape1, shape2)
-	fmt.Println("回答を選択してください:")
 	fmt.Println("q: !")
 	fmt.Println("w:" ,option)
 	fmt.Println("e: E")
