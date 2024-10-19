@@ -5,5 +5,6 @@
 GOlang  
 TypeScript  
 React  
+GIN
 MUIのアイコンやデザイン  
 react-router-dom  
