@@ -4,9 +4,12 @@ import (
 	"bufio"
 	"fmt"
 	"math/rand"
+	"net/http"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 // 図形の値を定義
@@ -48,8 +51,14 @@ func generateOptions(correctSum int) (int) {
 }
 
 // 10%の確率で「Q」を付けるかどうかを判定する関数
-func shouldAddQ() (bool) {
-	return rand.Float64() < 0.1
+func shouldAddQ() (string, bool) {
+	questionPrefix := ""
+	withQ := false
+	if rand.Float64() < 0.1 {
+		questionPrefix = "Q"
+		withQ = true
+	}
+	return questionPrefix, withQ
 }
 
 // 正解の判定
@@ -92,12 +101,7 @@ func provideProblem(){
 		shape1, shape2, correctSum := generateProblem()
 		option := generateOptions(correctSum)
 
-		// 10%の確率で「Q」を付ける
-		withQ := shouldAddQ()
-		questionPrefix := ""
-		if withQ {
-			questionPrefix = "Q"
-		}
+		questionPrefix, withQ := shouldAddQ()
 
 		// 問題を表示
 		fmt.Printf("\n問題 %d: %s%s %s\n", i, questionPrefix, shape1, shape2)
@@ -121,6 +125,36 @@ func provideProblem(){
 }
 
 func main() {
+
+	//エンジン作成
+	engine:=gin.Default()
+
+	//CORSの許可
+	engine.Use(func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type")
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+		c.Next()
+	})
+
+	//問題提供
+	engine.GET("/problem", func(c *gin.Context){
+		shape1, shape2, correctSum := generateProblem()
+		_, withQ := shouldAddQ()
+
+		c.JSON(http.StatusOK, gin.H{
+			"shape1": shape1,
+			"shape2": shape2,
+			"correctSum": correctSum,
+			"withQ": withQ,
+		})
+	})
+
 	rand.Seed(time.Now().UnixNano())
-	provideProblem()
+	engine.Run(":3000")
+	//provideProblem()
 }

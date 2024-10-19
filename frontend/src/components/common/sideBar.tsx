@@ -3,6 +3,7 @@ import React, { CSSProperties } from 'react'
 import { NavLink } from 'react-router-dom';
 import HomeIcon from '@mui/icons-material/Home';
 import EqualizerIcon from '@mui/icons-material/Equalizer';
+import EditNoteIcon from '@mui/icons-material/EditNote';
 
 interface SidebarProps {
     drawerWidth: number,
@@ -23,6 +24,7 @@ const sideBar = ({drawerWidth, mobileOpen, handleDrawerToggle, handleDrawerTrans
     const MenuItems:menuItem[] = [
         {text: "Home", path: "/", icon: HomeIcon},
         {text: "Report", path: "/report", icon: EqualizerIcon},
+        {text: "Training", path: "/training", icon:EditNoteIcon}
     ]
 
     const baseLinkStyle:CSSProperties = {
