@@ -14,6 +14,28 @@ const Training = () => {
     }
   };
 
+    // ボタンの選択をサーバーに送信する関数
+    const sendAnswer = async (answer: string) => {
+      try {
+        const response = await fetch('http://localhost:3000/answer', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ answer }),
+        });
+  
+        if (response.ok) {
+          const result = await response.json();
+          alert(`サーバーからの応答: ${result.message}`);
+        } else {
+          alert('サーバーに送信中にエラーが発生しました。');
+        }
+      } catch (error) {
+        console.error('答えの送信に失敗しました:', error);
+      }
+    };
+
   // 初回レンダリング時に問題を取得
   useEffect(() => {
     fetchProblem();

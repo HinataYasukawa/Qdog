@@ -154,6 +154,25 @@ func main() {
 		})
 	})
 
+	//解答受け取り
+	engine.POST("/answer", func(c *gin.Context) {
+		var requestBody struct {
+			Answer string `json:"answer"`
+		}
+
+		if err := c.BindJSON(&requestBody); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "無効なリクエストです。"})
+			return
+		}
+
+		// 受け取った答えを処理する
+		fmt.Printf("ユーザーが選択した答え: %s\n", requestBody.Answer)
+
+		// 例として、正解メッセージを返す
+		c.JSON(http.StatusOK, gin.H{"message": "答えを受け取りました。"})
+	})
+
+
 	rand.Seed(time.Now().UnixNano())
 	engine.Run(":3000")
 	//provideProblem()
