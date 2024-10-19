@@ -38,7 +38,7 @@ func random() (int, int) {
 }
 
 // オプションを生成
-func generateOptions(correctSum int) int {
+func generateOptions(correctSum int) (int) {
 	rnd, option := random()
 	if rnd == 0 {
 		return correctSum
@@ -48,15 +48,42 @@ func generateOptions(correctSum int) int {
 }
 
 // 10%の確率で「Q」を付けるかどうかを判定する関数
-func shouldAddQ() bool {
+func shouldAddQ() (bool) {
 	return rand.Float64() < 0.1
 }
 
-func main() {
-	// ランダムシードを設定
-	rand.Seed(time.Now().UnixNano())
+// 正解の判定
+func judgement(input string, withQ bool, option int, correctSum int) (int,int) {
+	correctAnswernum := 0
+	falseAnswernum := 0
+	
+	if withQ && input == "q" {
+		fmt.Println("正解。!です。")
+		correctAnswernum++
+	} else if !withQ && input == "w" {
+		if option == correctSum {
+			fmt.Println("正解。", correctSum, "です。")
+			correctAnswernum++
+		} else {
+			fmt.Println("不正解です。正解は", correctSum, "です。")
+			falseAnswernum++
+		}
+	} else if !withQ && input == "e"{
+		if option != correctSum {
+		fmt.Println("正解。Eです。")
+		correctAnswernum++
+		} else {
+			fmt.Println("不正解です。正解は", correctSum, "です。")
+			falseAnswernum++
+		}
+	} else {
+		fmt.Println("不正解です。")
+		falseAnswernum++
+	}
+	return correctAnswernum, falseAnswernum
+}
 
-	// 10問のループ
+func provideProblem(){
 	correctAnswernum := 0
 	falseAnswernum := 0
 
@@ -84,26 +111,16 @@ func main() {
 		input, _ := reader.ReadString('\n')
 		input = strings.TrimSpace(input)
 
-		// 正解の判定
-		if withQ && input == "q" {
-			fmt.Println("正解。!です。")
-			correctAnswernum++
-		} else if !withQ && input == "w" {
-			if option == correctSum {
-				fmt.Println("正解。", correctSum, "です。")
-				correctAnswernum++
-			} else {
-				fmt.Println("不正解です。正解は", correctSum, "です。")
-				falseAnswernum++
-			}
-		} else if !withQ && input == "e" && option != correctSum {
-			fmt.Println("正解。Eです。")
-			correctAnswernum++
-		} else {
-			fmt.Println("不正解です。")
-			falseAnswernum++
-		}
+		// 正解数と不正解数を更新
+		correct, incorrect := judgement(input, withQ, option, correctSum)
+		correctAnswernum += correct
+		falseAnswernum += incorrect
 	}
 
 	fmt.Printf("\n10問が終了しました。お疲れ様でした！\n正解数: %d, 不正解数: %d\n", correctAnswernum, falseAnswernum)
+}
+
+func main() {
+	rand.Seed(time.Now().UnixNano())
+	provideProblem()
 }
