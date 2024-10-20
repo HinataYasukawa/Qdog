@@ -1,12 +1,9 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"math/rand"
 	"net/http"
-	"os"
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -19,6 +16,16 @@ var shapeValues = map[string]int{
 	"□": 4,
 	"☆": 5,
 }
+
+// 問題を格納する構造体
+type Problem struct {
+	Shape1     string
+	Shape2     string
+	CorrectSum int
+	WithQ      bool
+}
+
+var currentProblem Problem
 
 // ランダムな問題を生成
 func generateProblem() (string, string, int) {
@@ -41,7 +48,7 @@ func random() (int, int) {
 }
 
 // オプションを生成
-func generateOptions(correctSum int) (int) {
+func generateOptions(correctSum int) int {
 	rnd, option := random()
 	if rnd == 0 {
 		return correctSum
@@ -62,10 +69,10 @@ func shouldAddQ() (string, bool) {
 }
 
 // 正解の判定
-func judgement(input string, withQ bool, option int, correctSum int) (int,int) {
+func judgement(input string, withQ bool, option int, correctSum int) (int, int) {
 	correctAnswernum := 0
 	falseAnswernum := 0
-	
+
 	if withQ && input == "q" {
 		fmt.Println("正解。!です。")
 		correctAnswernum++
@@ -77,10 +84,10 @@ func judgement(input string, withQ bool, option int, correctSum int) (int,int) {
 			fmt.Println("不正解です。正解は", correctSum, "です。")
 			falseAnswernum++
 		}
-	} else if !withQ && input == "e"{
+	} else if !withQ && input == "e" {
 		if option != correctSum {
-		fmt.Println("正解。Eです。")
-		correctAnswernum++
+			fmt.Println("正解。Eです。")
+			correctAnswernum++
 		} else {
 			fmt.Println("不正解です。正解は", correctSum, "です。")
 			falseAnswernum++
@@ -92,44 +99,11 @@ func judgement(input string, withQ bool, option int, correctSum int) (int,int) {
 	return correctAnswernum, falseAnswernum
 }
 
-func provideProblem(){
-	correctAnswernum := 0
-	falseAnswernum := 0
-
-	for i := 1; i <= 10; i++ {
-		// 問題を生成
-		shape1, shape2, correctSum := generateProblem()
-		option := generateOptions(correctSum)
-
-		questionPrefix, withQ := shouldAddQ()
-
-		// 問題を表示
-		fmt.Printf("\n問題 %d: %s%s %s\n", i, questionPrefix, shape1, shape2)
-		fmt.Println("q: !")
-		fmt.Println("w:", option)
-		fmt.Println("e: E")
-
-		// ユーザーの回答を取得
-		reader := bufio.NewReader(os.Stdin)
-		fmt.Print("入力: ")
-		input, _ := reader.ReadString('\n')
-		input = strings.TrimSpace(input)
-
-		// 正解数と不正解数を更新
-		correct, incorrect := judgement(input, withQ, option, correctSum)
-		correctAnswernum += correct
-		falseAnswernum += incorrect
-	}
-
-	fmt.Printf("\n10問が終了しました。お疲れ様でした！\n正解数: %d, 不正解数: %d\n", correctAnswernum, falseAnswernum)
-}
-
 func main() {
+	// エンジン作成
+	engine := gin.Default()
 
-	//エンジン作成
-	engine:=gin.Default()
-
-	//CORSの許可
+	// CORSの許可
 	engine.Use(func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
@@ -141,20 +115,28 @@ func main() {
 		c.Next()
 	})
 
-	//問題提供
-	engine.GET("/problem", func(c *gin.Context){
+	// 問題提供
+	engine.GET("/problem", func(c *gin.Context) {
 		shape1, shape2, correctSum := generateProblem()
 		_, withQ := shouldAddQ()
 
+		// 現在の問題を保存
+		currentProblem = Problem{
+			Shape1:     shape1,
+			Shape2:     shape2,
+			CorrectSum: correctSum,
+			WithQ:      withQ,
+		}
+
 		c.JSON(http.StatusOK, gin.H{
-			"shape1": shape1,
-			"shape2": shape2,
+			"shape1":     shape1,
+			"shape2":     shape2,
 			"correctSum": correctSum,
-			"withQ": withQ,
+			"withQ":      withQ,
 		})
 	})
 
-	//解答受け取り
+	// 解答受け取り
 	engine.POST("/answer", func(c *gin.Context) {
 		var requestBody struct {
 			Answer string `json:"answer"`
@@ -165,15 +147,18 @@ func main() {
 			return
 		}
 
-		// 受け取った答えを処理する
-		fmt.Printf("ユーザーが選択した答え: %s\n", requestBody.Answer)
+		// 解答を判定する
+		correct, incorrect := judgement(requestBody.Answer, currentProblem.WithQ, currentProblem.CorrectSum, currentProblem.CorrectSum)
 
-		// 例として、正解メッセージを返す
-		c.JSON(http.StatusOK, gin.H{"message": "答えを受け取りました。"})
+		// 判定結果を表示
+		fmt.Printf("ユーザーが選択した答え: %s\n", requestBody.Answer)
+		fmt.Printf("正解数: %d, 不正解数: %d\n", correct, incorrect)
+
+		// 判定結果を返す
+		c.JSON(http.StatusOK, gin.H{"message": "答えを受け取りました。判定が完了しました。"})
 	})
 
-
+	// ランダムシードの設定
 	rand.Seed(time.Now().UnixNano())
 	engine.Run(":3000")
-	//provideProblem()
 }
