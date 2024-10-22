@@ -1,0 +1,38 @@
+/* コンテナ全体のスタイル */
+.training-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 40px;
+  }
+  
+  /* タイトルのスタイル */
+  .training-title {
+    font-size: 32px;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+  
+  /* 問題の表示部分のスタイル */
+  .problem-display {
+    font-size: 28px;
+    margin-bottom: 20px;
+  }
+  
+  /* ボタンのスタイル */
+  .answer-button {
+    font-size: 24px;
+    padding: 15px 30px;
+    margin: 10px;
+    cursor: pointer;
+    border-radius: 8px;
+    border: none;
+    background-color: #4CAF50;
+    color: white;
+    transition: background-color 0.3s;
+  }
+  
+  .answer-button:hover {
+    background-color: #45a049;
+  }
+  

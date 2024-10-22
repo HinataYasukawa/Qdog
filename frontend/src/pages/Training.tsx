@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import './Training.css';
 
 const Training = () => {
   const [problem, setProblem] = useState<{ shape1: string; shape2: string; option: number; withQ: boolean } | null>(null);
+  const [correctCount, setCorrectCount] = useState<number | null>(null);
+  const [wrongCount, setWrongCount] = useState<number | null>(null);
 
-  // 問題を取得する関数
   const fetchProblem = async () => {
     try {
       const response = await fetch('http://localhost:3000/problem');
@@ -14,7 +16,19 @@ const Training = () => {
     }
   };
 
-  //入力されたボタンの情報をサーバーへ送信
+  const fetchSummary = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/summary');
+      if (response.ok) {
+        const result = await response.json();
+        setCorrectCount(result.correctCount);
+        setWrongCount(result.wrongCount);
+      }
+    } catch (error) {
+      console.error('集計結果の取得に失敗しました:', error);
+    }
+  };
+
   const sendAnswer = async (answer: string) => {
     try {
       const response = await fetch('http://localhost:3000/answer', {
@@ -24,13 +38,10 @@ const Training = () => {
         },
         body: JSON.stringify({ answer }),
       });
-  
+
       if (response.ok) {
-        const result = await response.json();
-        alert(`サーバーからの応答: ${result.message}`);
-  
-        // 解答後に新しい問題を取得
         fetchProblem();
+        fetchSummary();
       } else {
         alert('サーバーに送信中にエラーが発生しました。');
       }
@@ -39,20 +50,34 @@ const Training = () => {
     }
   };
 
-  // 初回レンダリング時に問題を取得
   useEffect(() => {
     fetchProblem();
   }, []);
 
   return (
-    <div>
-      <h2>Training</h2>
+    <div className="training-container">
+      <h2 className="training-title">
+        Training
+        {correctCount !== null && wrongCount !== null && (
+          <span className="result-summary">
+            (正解: {correctCount}, 不正解: {wrongCount})
+          </span>
+        )}
+      </h2>
       {problem ? (
         <div>
-          <p>問題: {problem.withQ ? 'Q' : ''}{problem.shape1} {problem.shape2}</p>
-          <button onClick={() => sendAnswer('q')}>q: !</button>
-          <button onClick={() => sendAnswer('w')}>w: {problem.option}</button>
-          <button onClick={() => sendAnswer('e')}>e: E</button>
+          <p className="problem-display">
+            問題: {problem.withQ ? 'Q' : ''}{problem.shape1} {problem.shape2}
+          </p>
+          <button className="answer-button" onClick={() => sendAnswer('q')}>
+            !
+          </button>
+          <button className="answer-button" onClick={() => sendAnswer('w')}>
+            {problem.option}
+          </button>
+          <button className="answer-button" onClick={() => sendAnswer('e')}>
+            E
+          </button>
         </div>
       ) : (
         <p>問題を読み込み中...</p>

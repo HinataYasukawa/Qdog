@@ -33,6 +33,7 @@ type Session struct{
 }
 
 var currentProblem Problem
+var session Session
 
 // ランダムな問題を生成
 func generateProblem() (string, string, int, bool) {
@@ -60,34 +61,30 @@ func generateOptions(correctSum int) int {
 }
 
 // 正解の判定
-func judgement(input string, withQ bool, option int, correctSum int) (int, int) {
-	correctAnswernum := 0
-	falseAnswernum := 0
+func judgement(input string, withQ bool, option int, correctSum int) (bool) {
+	AnswerJudge := false
 
 	if withQ && input == "q" {
 		fmt.Println("正解。!です。")
-		correctAnswernum++
+		AnswerJudge = true
 	} else if !withQ && input == "w" {
 		if option == correctSum {
 			fmt.Println("正解。", correctSum, "です。")
-			correctAnswernum++
+			AnswerJudge = true
 		} else {
 			fmt.Println("不正解です。正解は", correctSum, "です。")
-			falseAnswernum++
 		}
 	} else if !withQ && input == "e" {
 		if option != correctSum {
 			fmt.Println("正解。Eです。")
-			correctAnswernum++
+			AnswerJudge = true
 		} else {
 			fmt.Println("不正解です。正解は", correctSum, "です。")
-			falseAnswernum++
 		}
 	} else {
-		fmt.Println("不正解です。")
-		falseAnswernum++
+		fmt.Println("不正解です。あなたの入力は", input, "です。")
 	}
-	return correctAnswernum, falseAnswernum
+	return AnswerJudge
 }
 
 func main() {
@@ -111,7 +108,6 @@ func main() {
 		shape1, shape2, correctSum, withQ := generateProblem()
 		option :=generateOptions(correctSum)
 
-		// 現在の問題を保存
 		currentProblem = Problem{
 			Shape1:     shape1,
 			Shape2:     shape2,
@@ -134,20 +130,49 @@ func main() {
 			Answer string `json:"answer"`
 		}
 
+		// JSONのバインドに失敗した場合のエラーハンドリング
 		if err := c.BindJSON(&requestBody); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"message": "無効なリクエストです。"})
 			return
 		}
 
 		// 解答を判定する
-		correct, incorrect := judgement(requestBody.Answer, currentProblem.WithQ, currentProblem.option, currentProblem.correctSum)
+		correct := judgement(requestBody.Answer, currentProblem.WithQ, currentProblem.option, currentProblem.correctSum)
 
-		// 判定結果を表示
-		fmt.Printf("ユーザーが選択した答え: %s\n", requestBody.Answer)
-		fmt.Printf("正解数: %d, 不正解数: %d\n", correct, incorrect)
+		// 正解・不正解のカウント
+		if correct {
+			session.CorrectCount++
+		} else {
+			session.WrongCount++
+		}
+		session.CurrentCount++
 
-		// 判定結果を返す
-		c.JSON(http.StatusOK, gin.H{"message": "答えを受け取りました。判定が完了しました。"})
+		// 10回回答されたら終了状態へ移行するための処理
+		if session.CurrentCount == 10 {
+			session.Finished = true
+		}
+		// レスポンスを返す
+		message := "正解です。"
+		if !correct {
+			message = "不正解です。"
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"message": message,
+		})
+	})
+
+	// 集計結果を取得するエンドポイント
+	engine.GET("/summary", func(c *gin.Context) {
+		if session.Finished {
+			c.JSON(http.StatusOK, gin.H{
+				"correctCount": session.CorrectCount,
+				"wrongCount":   session.WrongCount,
+			})
+			session = Session{} // セッションをリセット
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "まだ10問回答されていません。"})
+		}
 	})
 
 	// ランダムシードの設定
