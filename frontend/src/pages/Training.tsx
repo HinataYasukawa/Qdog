@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 const Training = () => {
-  const [problem, setProblem] = useState<{ shape1: string; shape2: string; correctSum: number; withQ: boolean } | null>(null);
+  const [problem, setProblem] = useState<{ shape1: string; shape2: string; option: number; withQ: boolean } | null>(null);
 
   // 問題を取得する関数
   const fetchProblem = async () => {
@@ -47,9 +47,8 @@ const Training = () => {
       {problem ? (
         <div>
           <p>問題: {problem.withQ ? 'Q' : ''}{problem.shape1} {problem.shape2}</p>
-          <p>合計: {problem.correctSum}</p>
           <button onClick={() => sendAnswer('q')}>q: !</button>
-          <button onClick={() => sendAnswer('w')}>w: {problem.correctSum}</button>
+          <button onClick={() => sendAnswer('w')}>w: {problem.option}</button>
           <button onClick={() => sendAnswer('e')}>e: E</button>
         </div>
       ) : (

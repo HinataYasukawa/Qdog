@@ -21,7 +21,8 @@ var shapeValues = map[string]int{
 type Problem struct {
 	Shape1     string
 	Shape2     string
-	CorrectSum int
+	correctSum int
+	option 	   int
 	WithQ      bool
 }
 
@@ -40,16 +41,10 @@ func generateProblem() (string, string, int) {
 	return shape1, shape2, sum
 }
 
-// 数字の選択肢をランダム生成
-func random() (int, int) {
-	result := rand.Intn(2)
-	option := rand.Intn(11)
-	return result, option
-}
-
-// オプションを生成
+// 選択肢を生成
 func generateOptions(correctSum int) int {
-	rnd, option := random()
+	rnd := rand.Intn(2)
+	option := rand.Intn(11)
 	if rnd == 0 {
 		return correctSum
 	} else {
@@ -118,20 +113,22 @@ func main() {
 	// 問題提供
 	engine.GET("/problem", func(c *gin.Context) {
 		shape1, shape2, correctSum := generateProblem()
+		option :=generateOptions(correctSum)
 		_, withQ := shouldAddQ()
 
 		// 現在の問題を保存
 		currentProblem = Problem{
 			Shape1:     shape1,
 			Shape2:     shape2,
-			CorrectSum: correctSum,
+			correctSum:	correctSum,
+			option: 	option,
 			WithQ:      withQ,
 		}
 
 		c.JSON(http.StatusOK, gin.H{
 			"shape1":     shape1,
 			"shape2":     shape2,
-			"correctSum": correctSum,
+			"option": 	  option,
 			"withQ":      withQ,
 		})
 	})
@@ -148,7 +145,7 @@ func main() {
 		}
 
 		// 解答を判定する
-		correct, incorrect := judgement(requestBody.Answer, currentProblem.WithQ, currentProblem.CorrectSum, currentProblem.CorrectSum)
+		correct, incorrect := judgement(requestBody.Answer, currentProblem.WithQ, currentProblem.option, currentProblem.correctSum)
 
 		// 判定結果を表示
 		fmt.Printf("ユーザーが選択した答え: %s\n", requestBody.Answer)
