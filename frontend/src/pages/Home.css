@@ -1,0 +1,56 @@
+/* 全体のレイアウト */
+.home-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px;
+    background-color: #f7f7f7;
+    min-height: 100vh;
+    font-family: 'Arial', sans-serif;
+  }
+  
+  /* タイトルのスタイル */
+  .home-title {
+    font-size: 36px;
+    font-weight: bold;
+    color: #4CAF50;
+    margin-bottom: 20px;
+  }
+  
+  /* 説明テキストのスタイル */
+  .home-description {
+    font-size: 20px;
+    line-height: 1.6;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  /* 指示テキストのスタイル */
+  .home-instructions {
+    font-size: 18px;
+    line-height: 1.8;
+    margin-bottom: 30px;
+  }
+  
+  .home-instructions ul {
+    list-style-type: disc;
+    padding-left: 20px;
+  }
+  
+  /* フッターのGitHubリンクのスタイル */
+  .home-footer {
+    margin-top: auto;
+  }
+  
+  .github-link {
+    font-size: 18px;
+    color: #333;
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    transition: border-color 0.3s;
+  }
+  
+  .github-link:hover {
+    border-color: #4CAF50;
+  }
+  
