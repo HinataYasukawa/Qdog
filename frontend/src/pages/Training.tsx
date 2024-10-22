@@ -14,7 +14,7 @@ const Training = () => {
     }
   };
 
-  // ボタンの選択をサーバーに送信する関数
+  //入力されたボタンの情報をサーバーへ送信
   const sendAnswer = async (answer: string) => {
     try {
       const response = await fetch('http://localhost:3000/answer', {
@@ -24,10 +24,13 @@ const Training = () => {
         },
         body: JSON.stringify({ answer }),
       });
-
+  
       if (response.ok) {
         const result = await response.json();
         alert(`サーバーからの応答: ${result.message}`);
+  
+        // 解答後に新しい問題を取得
+        fetchProblem();
       } else {
         alert('サーバーに送信中にエラーが発生しました。');
       }

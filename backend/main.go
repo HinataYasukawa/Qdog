@@ -25,11 +25,17 @@ type Problem struct {
 	option 	   int
 	WithQ      bool
 }
+type Session struct{
+	CorrectCount	int
+	WrongCount		int
+	CurrentCount	int
+	Finished		bool
+}
 
 var currentProblem Problem
 
 // ランダムな問題を生成
-func generateProblem() (string, string, int) {
+func generateProblem() (string, string, int, bool) {
 	shapes := []string{"〇", "△", "□", "☆"} // 図形のリスト
 
 	// ランダムに2つの図形を選択
@@ -38,7 +44,8 @@ func generateProblem() (string, string, int) {
 
 	// 合計を計算
 	sum := shapeValues[shape1] + shapeValues[shape2]
-	return shape1, shape2, sum
+	withQ := rand.Float64() < 0.1
+	return shape1, shape2, sum, withQ
 }
 
 // 選択肢を生成
@@ -50,17 +57,6 @@ func generateOptions(correctSum int) int {
 	} else {
 		return option
 	}
-}
-
-// 10%の確率で「Q」を付けるかどうかを判定する関数
-func shouldAddQ() (string, bool) {
-	questionPrefix := ""
-	withQ := false
-	if rand.Float64() < 0.1 {
-		questionPrefix = "Q"
-		withQ = true
-	}
-	return questionPrefix, withQ
 }
 
 // 正解の判定
@@ -112,9 +108,8 @@ func main() {
 
 	// 問題提供
 	engine.GET("/problem", func(c *gin.Context) {
-		shape1, shape2, correctSum := generateProblem()
+		shape1, shape2, correctSum, withQ := generateProblem()
 		option :=generateOptions(correctSum)
-		_, withQ := shouldAddQ()
 
 		// 現在の問題を保存
 		currentProblem = Problem{
